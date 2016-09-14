@@ -37,7 +37,7 @@ func GetDB(region string) (*DB, error) {
 
 	if strings.HasPrefix(region, "http") {
 		// local Dynamondb
-		reg = aws.Region{DynamoDBEndpoint: "http://127.0.0.1:8000"}
+		reg = aws.Region{DynamoDBEndpoint: region}
 		auth = aws.Auth{AccessKey: "DUMMY_KEY", SecretKey: "DUMMY_SECRET"}
 	} else {
 		reg = aws.GetRegion(region)
