@@ -5,6 +5,7 @@ import (
 	"fmt"
 	aws "github.com/AdRoll/goamz/aws"
 	dynamodb "github.com/AdRoll/goamz/dynamodb"
+	"strings"
 )
 
 type DB struct {
@@ -27,19 +28,28 @@ type Key struct {
 */
 
 func GetDB(region string) (*DB, error) {
+
 	var (
 		auth aws.Auth
 		err  error
+		reg  aws.Region
 	)
 
-	if auth, err = aws.EnvAuth(); err != nil {
-		fmt.Println("[easydynamo] GetDB", err)
-		return nil, err
+	if strings.HasPrefix(region, "http") {
+		// local Dynamondb
+		reg = aws.Region{DynamoDBEndpoint: "http://127.0.0.1:8000"}
+		auth = aws.Auth{AccessKey: "DUMMY_KEY", SecretKey: "DUMMY_SECRET"}
+	} else {
+		reg = aws.GetRegion(region)
+		if auth, err = aws.EnvAuth(); err != nil {
+			fmt.Println("[easydynamo] GetDB", err)
+			return nil, err
+		}
 	}
 
 	var db DB
 
-	db.ddbs = dynamodb.New(auth, aws.GetRegion(region))
+	db.ddbs = dynamodb.New(auth, reg)
 	return &db, nil
 }
 
