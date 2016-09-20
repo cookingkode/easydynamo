@@ -1,7 +1,6 @@
 package easydynamo
 
 import (
-	"fmt"
 	"github.com/AdRoll/goamz/dynamodb"
 )
 
@@ -15,6 +14,8 @@ func (t *Table) NewPutBatch() *PutBatch {
 	return &PutBatch{t: t}
 }
 
+// Add add a key (consisting of hash and range values) and attributes (map of attribute name
+// to vaules ) to the batch
 func (b *PutBatch) Add(hashkey, rangekey string, attribs map[string]interface{}) {
 
 	b.keys = append(b.keys, &dynamodb.Key{
@@ -29,10 +30,14 @@ func (b *PutBatch) GetKV() ([]*dynamodb.Key, []map[string]interface{}) {
 	return b.keys, b.vals
 }
 
+// Fire executes the query
 func (b *PutBatch) Fire() ([]error, error) {
 	return b.t.tb.BatchPutDocument(b.keys, b.vals)
 }
 
+// MultiFire executes the query taking into consideration the Max batch size for put (25)
+// Here it launches multiple parallel Put requests
+// Care needs to be taken to make sure IOPS requirements are not exceeded
 func (b *PutBatch) MultiFire() ([]error, []error) {
 
 	numKeys := len(b.keys)
@@ -53,10 +58,6 @@ func (b *PutBatch) MultiFire() ([]error, []error) {
 		}
 
 		go func(errsChan chan []error, errChan chan error, start, end int) {
-			fmt.Printf("Batch start %d end %d len %d\n", start, end, numKeys)
-			fmt.Println(b.keys[start:end])
-			fmt.Println(b.vals[start:end])
-
 			keys := b.keys[start:end]
 			vals := b.vals[start:end]
 
