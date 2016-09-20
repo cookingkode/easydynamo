@@ -16,11 +16,14 @@ const (
 )
 
 var (
-	numKeys = flag.Int("nk", 5, "number of keys")
-	doWrite = flag.Bool("w", false, "do write")
-	doRead  = flag.Bool("r", false, "do read")
-	doQuery = flag.Bool("q", false, " do query")
-	userid  = flag.String("u", "UserX", "userid ")
+	numKeys    = flag.Int("nk", 5, "number of keys")
+	doWrite    = flag.Bool("w", false, "do write")
+	doRead     = flag.Bool("r", false, "do read")
+	doQuery    = flag.Bool("q", false, " do query")
+	userid     = flag.String("u", "UserX", "userid ")
+	updateIops = flag.Bool("i", false, " update iops")
+	readIops   = flag.Int64("ri", 5, "read capacity units")
+	writeIops  = flag.Int64("wi", 5, "write capacity units")
 )
 
 func main() {
@@ -41,6 +44,11 @@ func main() {
 		ins  []map[string]interface{}
 		outs []map[string]interface{}
 	)
+
+	if *updateIops {
+		fmt.Println(tbl.UpdateIOPS(*readIops, *writeIops))
+		return
+	}
 
 	if *doWrite {
 		populate(tbl, *userid, *numKeys)

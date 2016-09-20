@@ -9,12 +9,14 @@ import (
 )
 
 type DB struct {
-	ddbs *dynamodb.Server
+	ddbs       *dynamodb.Server
+	regionName string
 }
 
 type Table struct {
-	db *DB
-	tb *dynamodb.Table
+	db        *DB
+	tb        *dynamodb.Table
+	tableName string
 }
 
 var (
@@ -47,7 +49,7 @@ func GetDB(region string) (*DB, error) {
 	}
 
 	var db DB
-
+	db.regionName = region
 	db.ddbs = dynamodb.New(auth, reg)
 	return &db, nil
 }
@@ -71,6 +73,8 @@ func (db *DB) GetTable(name string) (*Table, error) {
 	}
 
 	var table Table
+	table.tableName = name
+	table.db = db
 	table.tb = db.ddbs.NewTable(name, pk)
 
 	return &table, nil
