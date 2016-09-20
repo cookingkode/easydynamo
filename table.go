@@ -1,7 +1,6 @@
 package easydynamo
 
 import (
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -40,8 +39,6 @@ func (t *Table) UpdateIOPS(ReadCapacityUnits, WriteCapacityUnits int64) (*Provis
 		return nil, err
 	}
 
-	fmt.Println("region ", t.db.regionName)
-
 	svc := dynamodb.New(sess, aws.NewConfig().WithRegion(t.db.regionName))
 
 	params := &dynamodb.UpdateTableInput{
@@ -63,8 +60,6 @@ func (t *Table) UpdateIOPS(ReadCapacityUnits, WriteCapacityUnits int64) (*Provis
 	ret.NumberOfDecreasesToday = resp.TableDescription.ProvisionedThroughput.NumberOfDecreasesToday
 	ret.ReadCapacityUnits = resp.TableDescription.ProvisionedThroughput.ReadCapacityUnits
 	ret.WriteCapacityUnits = resp.TableDescription.ProvisionedThroughput.WriteCapacityUnits
-
-	fmt.Println(*ret.ReadCapacityUnits, *ret.WriteCapacityUnits)
 
 	return &ret, nil
 
