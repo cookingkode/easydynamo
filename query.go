@@ -57,7 +57,7 @@ func (qry *Query) Fire(limit int64) ([]map[string]*dynamodb.Attribute, error) {
 	return qry.BatchRead(qry.q)
 }
 
-func (qry *Query) BatchRead(query ScanQuery) ([]map[string]*dynamodb.Attribute,error) {
+func (qry *Query) BatchRead(query dynamodb.ScanQuery) ([]map[string]*dynamodb.Attribute,error) {
 
 	finalResults := make([]map[string]*dynamodb.Attribute, 0, 100)
 
