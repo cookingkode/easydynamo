@@ -53,7 +53,30 @@ func (qry *Query) Fire(limit int64) ([]map[string]*dynamodb.Attribute, error) {
 		qry.q.AddQueryFilter(qry.attribComparisons)
 	}
 
-	return dynamodb.RunQuery(qry.q, qry.t.tb)
+	//return dynamodb.RunQuery(qry.q, qry.t.tb)
+	return qry.BatchRead(qry.q)
+}
+
+func (qry *Query) BatchRead(query ScanQuery) error {
+
+	finalResults := make([]map[string]*dynamodb.Attribute, 0, 100)
+
+	for {
+		results, lastEvaluatedKey, err := t.QueryTable(query)
+		if err != nil {
+			return nil, err
+		}
+		for _, item := range results {
+			finalResults = append(finalResults, item)
+		}
+
+		if lastEvaluatedKey == nil {
+			break
+		}
+		query.AddExclusiveStartKey(lastEvaluatedKey)
+	}
+
+	return finalResults, nil
 }
 
 func getComparison(keyName, condition string, val interface{}) dynamodb.AttributeComparison {
