@@ -19,7 +19,6 @@ func (t *Table) NewQuery() *Query {
 	}
 }
 
-
 const (
 	COMPARISON_EQUAL                    = "EQ"
 	COMPARISON_NOT_EQUAL                = "NE"
@@ -54,8 +53,8 @@ func (qry *Query) Fire(limit int64) ([]map[string]*dynamodb.Attribute, error) {
 		qry.q.AddQueryFilter(qry.attribComparisons)
 	}
 
-	//return dynamodb.RunQuery(qry.q, qry.t.tb)
-	return qry.BatchRead(qry.q)
+	return dynamodb.RunQuery(qry.q, qry.t.tb)
+	//return qry.BatchRead(qry.q)
 }
 
 func (qry *Query) BatchRead(query dynamodb.ScanQuery) ([]map[string]*dynamodb.Attribute, error) {
