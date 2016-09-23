@@ -29,7 +29,6 @@ var (
 func main() {
 	flag.Parse()
 
-	easydynamo.Hello()
 	db, err := easydynamo.GetDB("ap-south-1")
 	if err != nil {
 		panic(err)
