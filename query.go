@@ -101,11 +101,7 @@ func getComparison(keyName, condition string, val interface{}) dynamodb.Attribut
 	case reflect.String:
 		comparison = dynamodb.NewStringAttributeComparison(keyName, condition, val.(string))
 	case reflect.Bool:
-		//Wating for pull  request to be accepted  https://github.com/AdRoll/goamz/pull/431
-		//TODO : uncomment below code after PL merged
-		//comparison = dynamodb.NewBoolAttributeComparison(keyName, condition, val.(bool))
-		//remove code below this comment after merge
-		comparison = dynamodb.NewBinaryAttributeComparison(keyName, condition, val.(bool))
+		comparison = dynamodb.NewBoolAttributeComparison(keyName, condition, val.(bool))
 	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int8, reflect.Int64:
 		comparison = dynamodb.NewNumericAttributeComparison(keyName, condition, int64(val.(int)))
 	}
