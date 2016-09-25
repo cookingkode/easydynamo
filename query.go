@@ -3,6 +3,7 @@ package easydynamo
 import (
 	"github.com/AdRoll/goamz/dynamodb"
 	"reflect"
+	"strconv"
 )
 
 type Query struct {
