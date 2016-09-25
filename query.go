@@ -10,6 +10,7 @@ type Query struct {
 	q                 *dynamodb.UntypedQuery
 	keyComparisons    []dynamodb.AttributeComparison
 	attribComparisons []dynamodb.AttributeComparison
+	attributes        []dynamodb.Attribute
 }
 
 func (t *Table) NewQuery() *Query {
@@ -43,6 +44,10 @@ func (qry *Query) AddAttributeFilterCondition(keyName, condition string, val int
 	qry.attribComparisons = append(qry.attribComparisons, getComparison(keyName, condition, val))
 }
 
+func (qry *Query) AddUpdateAttribute(keyName string, val interface{}) {
+	qry.attributes = append(qry.attributes, getAttribute(keyName, val))
+}
+
 func (qry *Query) Fire(limit int64) ([]map[string]*dynamodb.Attribute, error) {
 	if limit > 0 {
 		qry.q.AddLimit(limit)
@@ -55,6 +60,15 @@ func (qry *Query) Fire(limit int64) ([]map[string]*dynamodb.Attribute, error) {
 
 	return dynamodb.RunQuery(qry.q, qry.t.tb)
 	//return qry.BatchRead(qry.q)
+}
+
+func (qry *Query) FireUpdate(hashk string, rangek string, action string) (bool, error) {
+
+	if len(qry.attributes) > 0 {
+		qry.q.AddUpdates(qry.attributes, action)
+	}
+
+	return qry.t.tb.UpdateAttributes(&dynamodb.Key{HashKey: hashk, RangeKey: rangek}, qry.attributes)
 }
 
 func (qry *Query) BatchRead(query dynamodb.ScanQuery) ([]map[string]*dynamodb.Attribute, error) {
@@ -96,4 +110,19 @@ func getComparison(keyName, condition string, val interface{}) dynamodb.Attribut
 	}
 
 	return *comparison
+}
+
+func getAttribute(keyName string, val interface{}) dynamodb.Attribute {
+	var attribute *dynamodb.Attribute
+
+	switch reflect.TypeOf(val).Kind() {
+	case reflect.String:
+		attribute = dynamodb.NewStringAttribute(keyName, val.(string))
+	case reflect.Bool:
+		attribute = dynamodb.NewBoolAttribute(keyName, strconv.FormatBool(val.(bool)))
+	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int8, reflect.Int64:
+		attribute = dynamodb.NewNumericAttribute(keyName, strconv.FormatInt(int64(val.(int)), 10))
+	}
+
+	return *attribute
 }
