@@ -72,20 +72,23 @@ func (qry *Query) FireUpdate(hashk string, rangek string, action string) (bool, 
 	return qry.t.tb.UpdateAttributes(&dynamodb.Key{HashKey: hashk, RangeKey: rangek}, qry.attributes)
 }
 
-func (qry *Query) BatchRead(query dynamodb.ScanQuery) ([]map[string]*dynamodb.Attribute, error) {
+func (qry *Query) BatchRead(query dynamodb.ScanQuery, limit int) ([]map[string]*dynamodb.Attribute, error) {
 
 	finalResults := make([]map[string]*dynamodb.Attribute, 0, 100)
 
+	processedLength := 0
 	for {
 		results, lastEvaluatedKey, err := qry.t.tb.QueryTable(query)
+
 		if err != nil {
 			return nil, err
 		}
 		for _, item := range results {
 			finalResults = append(finalResults, item)
 		}
+		processedLength += len(results)
 
-		if lastEvaluatedKey == nil {
+		if lastEvaluatedKey == nil || processedLength == limit {
 			break
 		}
 		query.AddExclusiveStartKey(lastEvaluatedKey)
