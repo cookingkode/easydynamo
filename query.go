@@ -12,6 +12,7 @@ type Query struct {
 	keyComparisons    []dynamodb.AttributeComparison
 	attribComparisons []dynamodb.AttributeComparison
 	attributes        []dynamodb.Attribute
+	queryIndex        string
 }
 
 func (t *Table) NewQuery() *Query {
@@ -49,14 +50,23 @@ func (qry *Query) AddUpdateAttribute(keyName string, val interface{}) {
 	qry.attributes = append(qry.attributes, getAttribute(keyName, val))
 }
 
+func (qry *Query) AddQueryIndex(indexName string) {
+	qry.queryIndex = indexName
+}
+
 func (qry *Query) Fire(limit int64) ([]map[string]*dynamodb.Attribute, error) {
 	if limit > 0 {
 		qry.q.AddLimit(limit)
 	}
-
+	//Add Key Condtitions
 	qry.q.AddKeyConditions(qry.keyComparisons)
+	//Add Query Filter Conditions
 	if len(qry.attribComparisons) > 0 {
 		qry.q.AddQueryFilter(qry.attribComparisons)
+	}
+	//Add Index to Query on if any specified
+	if qry.queryIndex != "" {
+		qry.q.AddIndex(qry.queryIndex)
 	}
 
 	return dynamodb.RunQuery(qry.q, qry.t.tb)
