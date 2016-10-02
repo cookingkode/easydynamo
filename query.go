@@ -12,7 +12,6 @@ type Query struct {
 	keyComparisons    []dynamodb.AttributeComparison
 	attribComparisons []dynamodb.AttributeComparison
 	attributes        []dynamodb.Attribute
-	queryIndex        string
 }
 
 func (t *Table) NewQuery() *Query {
@@ -36,6 +35,8 @@ const (
 	COMPARISON_BEGINS_WITH              = "BEGINS_WITH"
 	COMPARISON_IN                       = "IN"
 	COMPARISON_BETWEEN                  = "BETWEEN"
+	SCAN_INDEX_FORWARD                  = true
+	SCAN_INDEX_BACKWARD                 = false
 )
 
 func (qry *Query) AddKeyCondition(keyName, condition string, val interface{}) {
@@ -51,7 +52,15 @@ func (qry *Query) AddUpdateAttribute(keyName string, val interface{}) {
 }
 
 func (qry *Query) AddQueryIndex(indexName string) {
-	qry.queryIndex = indexName
+	qry.q.AddIndex(indexName)
+}
+
+/*
+Whether to scan the query index forward  or backwards .
+Defaults to forward if not called.
+*/
+func (qry *Query) AddIndexScanOrder(order bool) {
+	qry.q.AddScanIndexForward(order)
 }
 
 func (qry *Query) Fire(limit int64) ([]map[string]*dynamodb.Attribute, error) {
@@ -63,10 +72,6 @@ func (qry *Query) Fire(limit int64) ([]map[string]*dynamodb.Attribute, error) {
 	//Add Query Filter Conditions
 	if len(qry.attribComparisons) > 0 {
 		qry.q.AddQueryFilter(qry.attribComparisons)
-	}
-	//Add Index to Query on if any specified
-	if qry.queryIndex != "" {
-		qry.q.AddIndex(qry.queryIndex)
 	}
 
 	return dynamodb.RunQuery(qry.q, qry.t.tb)
